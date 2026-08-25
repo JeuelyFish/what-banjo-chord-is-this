@@ -8,9 +8,10 @@ const NECK_TOP_MARGIN = 56;
 const SIDE_MARGIN = 28;
 const DOT_RADIUS = 12;
 
-// Rendered left-to-right the way printed banjo chord charts do: 4th, 3rd,
-// 2nd, 1st, then the short 5th drone string on the right.
-const DISPLAY_ORDER: StringIndex[] = [1, 2, 3, 4, 0];
+// Rendered left-to-right as viewed head-on (looking at the front of the
+// banjo, playing hand toward you): the short 5th drone string on the left,
+// then 4th, 3rd, 2nd, 1st.
+const DISPLAY_ORDER: StringIndex[] = [0, 1, 2, 3, 4];
 
 const svgWidth = SIDE_MARGIN * 2 + STRING_SPACING * (DISPLAY_ORDER.length - 1);
 const svgHeight = NECK_TOP_MARGIN + FRET_HEIGHT * NUM_FRETS + 20;
@@ -46,8 +47,8 @@ export function Fretboard({ fingering, onFret, onOpen }: FretboardProps) {
       {Array.from({ length: NUM_FRETS + 1 }, (_, fret) => (
         <line
           key={fret}
-          x1={screenX(1)}
-          x2={screenX(0)}
+          x1={fret < OPEN_G_TUNING[0].minFret - 1 ? screenX(1) : screenX(0)}
+          x2={screenX(4)}
           y1={fretLineY(fret)}
           y2={fretLineY(fret)}
           className={fret === 0 ? "stroke-foreground" : "stroke-foreground/30"}
