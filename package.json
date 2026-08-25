@@ -2,6 +2,13 @@
   "name": "what-banjo-chord-is-this",
   "version": "0.1.0",
   "private": true,
+  "description": "An interactive 5-string banjo fretboard that names the chord you're fretting.",
+  "license": "MIT",
+  "author": "JeuelyFish",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/JeuelyFish/what-banjo-chord-is-this.git"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
