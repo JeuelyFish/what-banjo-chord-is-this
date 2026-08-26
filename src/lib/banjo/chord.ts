@@ -14,6 +14,13 @@ export interface ChordResult {
   primaryName: string; // friendly display name, or "—" if nothing matches
   pitchClasses: string[]; // fallback display when there's no chord match
   reason: NoMatchReason | null; // null once there's a match
+  completions?: PartialChordCompletion[]; // set only when reason is "partial-chord"
+}
+
+/** A single note that would complete this fragment, and the chord it wins as. */
+export interface PartialChordCompletion {
+  note: string;
+  chordName: string;
 }
 
 function rotations<T>(arr: T[]): T[][] {
@@ -37,23 +44,27 @@ const CHROMATIC_PITCH_CLASSES = [
 ];
 
 /**
- * True if adding any single note to this set would complete some known
- * chord. Doesn't say which note or which chord — an exhaustive check found
- * every real "no-match" 3-note fragment has several unrelated single-note
- * completions, not one obvious answer, so naming a specific one would mean
- * arbitrarily picking a winner rather than reporting a fact.
+ * Every single note that, added to this set, would complete some known
+ * chord — an exhaustive check found every real "no-match" 3-note fragment
+ * has several unrelated single-note completions, not one obvious answer, so
+ * the caller decides how many (or which) to show. Each completion's
+ * `chordName` is whichever name `bestChordNames` ranks first — the same
+ * name `detectChord` would show as `primaryName` once that note is
+ * actually played.
  */
-function isOneNoteAway(pitchClasses: string[]): boolean {
-  return CHROMATIC_PITCH_CLASSES.some((note) => {
-    if (pitchClasses.includes(note)) return false;
-    return bestChordNames([...pitchClasses, note]).length > 0;
-  });
+function partialChordCompletions(pitchClasses: string[]): PartialChordCompletion[] {
+  return CHROMATIC_PITCH_CLASSES.filter((note) => !pitchClasses.includes(note))
+    .map((note) => ({ note, chordName: bestChordNames([...pitchClasses, note])[0] }))
+    .filter((completion): completion is PartialChordCompletion => completion.chordName !== undefined);
 }
 
-function noMatchReason(pitchClasses: string[]): NoMatchReason {
+function noMatchReason(
+  pitchClasses: string[],
+  completions: PartialChordCompletion[]
+): NoMatchReason {
   if (pitchClasses.length < 3) return "too-few-notes";
   if (hasHalfStepClash(pitchClasses)) return "cluster";
-  if (isOneNoteAway(pitchClasses)) return "partial-chord";
+  if (completions.length > 0) return "partial-chord";
   return "no-match";
 }
 
@@ -100,10 +111,17 @@ export function detectChord(fingering: Fingering): ChordResult {
   const pitchClasses = Array.from(new Set(notes.map(pitchClass)));
   const names = bestChordNames(pitchClasses);
 
+  if (names.length > 0) {
+    return { names, primaryName: names[0], pitchClasses, reason: null };
+  }
+
+  const completions = partialChordCompletions(pitchClasses);
+  const reason = noMatchReason(pitchClasses, completions);
   return {
     names,
-    primaryName: names[0] ?? "—",
+    primaryName: "—",
     pitchClasses,
-    reason: names.length > 0 ? null : noMatchReason(pitchClasses),
+    reason,
+    completions: reason === "partial-chord" ? completions : undefined,
   };
 }

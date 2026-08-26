@@ -1,15 +1,16 @@
+"use client";
+
 import type { ChordResult, NoMatchReason } from "@/lib/banjo/chord";
+import { PartialChordDialog } from "./PartialChordDialog";
 
 interface ChordDisplayProps {
   result: ChordResult;
 }
 
-const REASON_MESSAGE: Record<NoMatchReason, string> = {
-  "too-few-notes": "Add another note to form a chord",
-  cluster: "These notes clash — no standard chord has two notes a half-step apart",
-  "partial-chord":
-    "This looks like part of a chord — one different note could complete it into one of several possible chords",
-  "no-match": "Not a recognized chord",
+const REASON_MESSAGE: Record<Exclude<NoMatchReason, "partial-chord">, string> = {
+  "too-few-notes": "Add another note to form a chord.",
+  cluster: "These notes clash — no standard chord has two notes a half-step apart.",
+  "no-match": "Not a recognized chord.",
 };
 
 // A fixed-width box keeps the fretboard from shifting as the chord name's
@@ -24,6 +25,7 @@ function textSizeClass(name: string): string {
 
 export function ChordDisplay({ result }: ChordDisplayProps) {
   const hasMatch = result.names.length > 0;
+  const reason = result.reason!;
 
   return (
     <div className="flex w-56 flex-none flex-col items-center gap-2">
@@ -40,7 +42,19 @@ export function ChordDisplay({ result }: ChordDisplayProps) {
       {!hasMatch && (
         <>
           <span className="text-center text-sm text-foreground/70">
-            {REASON_MESSAGE[result.reason!]}
+            {reason === "partial-chord" ? (
+              <>
+                This looks like part of a chord — one different note could
+                complete it into one of{" "}
+                <PartialChordDialog
+                  completions={result.completions ?? []}
+                  notes={result.pitchClasses}
+                />
+                .
+              </>
+            ) : (
+              REASON_MESSAGE[reason]
+            )}
           </span>
           <span className="text-sm text-foreground/50">
             Notes: {result.pitchClasses.join(", ")}

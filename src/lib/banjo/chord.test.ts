@@ -62,6 +62,7 @@ describe("detectChord — no-match reasons", () => {
     expect(result.names).toEqual([]);
     expect(result.reason).toBe("too-few-notes");
     expect(result.pitchClasses.sort()).toEqual(["B", "G"]);
+    expect(result.completions).toBeUndefined();
   });
 
   it("reports cluster when two sounding notes are a half-step apart", () => {
@@ -71,6 +72,7 @@ describe("detectChord — no-match reasons", () => {
     const result = detectChord(fingering);
     expect(result.names).toEqual([]);
     expect(result.reason).toBe("cluster");
+    expect(result.completions).toBeUndefined();
   });
 
   it("reports partial-chord for a fragment that's one note away from a real chord", () => {
@@ -83,5 +85,9 @@ describe("detectChord — no-match reasons", () => {
     expect(result.names).toEqual([]);
     expect(result.reason).toBe("partial-chord");
     expect(result.pitchClasses.sort()).toEqual(["D", "E", "G"]);
+
+    // Adding B completes it into D-E-G-B, which bestChordNames ranks Em7 above G6 for.
+    const bCompletion = result.completions?.find((c) => c.note === "B");
+    expect(bCompletion?.chordName).toBe("Em7");
   });
 });
