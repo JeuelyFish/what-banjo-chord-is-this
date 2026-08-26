@@ -97,11 +97,13 @@ export function Fretboard({ fingering, onFret, onOpen }: FretboardProps) {
           <text
             key={stringDef.index}
             x={screenX(stringDef.index)}
-            y={topY - 8}
+            y={topY - 16}
             textAnchor="middle"
             className="fill-foreground/50 text-[11px]"
           >
-            {pitchClass(stringDef.openNote)}
+            {stringDef.minFret > 0
+              ? pitchClass(stringDef.openNote).toLowerCase()
+              : pitchClass(stringDef.openNote)}
           </text>
         );
       })}
