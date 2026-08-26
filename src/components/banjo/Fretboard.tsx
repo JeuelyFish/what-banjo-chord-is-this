@@ -1,6 +1,6 @@
 "use client";
 
-import { OPEN_G_TUNING, NUM_FRETS, type Fingering, type StringIndex } from "@/lib/banjo/tuning";
+import { NUM_FRETS, type Fingering, type StringDef, type StringIndex } from "@/lib/banjo/tuning";
 import { pitchClass } from "@/lib/banjo/notes";
 
 const FRET_HEIGHT = 40;
@@ -31,11 +31,12 @@ function dotY(fret: number): number {
 
 interface FretboardProps {
   fingering: Fingering;
+  tuning: StringDef[];
   onFret: (stringIndex: StringIndex, fret: number) => void;
   onOpen: (stringIndex: StringIndex) => void;
 }
 
-export function Fretboard({ fingering, onFret, onOpen }: FretboardProps) {
+export function Fretboard({ fingering, tuning, onFret, onOpen }: FretboardProps) {
   return (
     <svg
       viewBox={`0 0 ${svgWidth} ${svgHeight}`}
@@ -48,7 +49,7 @@ export function Fretboard({ fingering, onFret, onOpen }: FretboardProps) {
       {Array.from({ length: NUM_FRETS + 1 }, (_, fret) => (
         <line
           key={fret}
-          x1={fret < OPEN_G_TUNING[0].minFret - 1 ? screenX(1) : screenX(0)}
+          x1={fret < tuning[0].minFret - 1 ? screenX(1) : screenX(0)}
           x2={screenX(4)}
           y1={fretLineY(fret)}
           y2={fretLineY(fret)}
@@ -72,7 +73,7 @@ export function Fretboard({ fingering, onFret, onOpen }: FretboardProps) {
       ))}
 
       {/* strings */}
-      {OPEN_G_TUNING.map((stringDef) => {
+      {tuning.map((stringDef) => {
         const x = screenX(stringDef.index);
         const topY =
           stringDef.minFret > 0 ? fretLineY(stringDef.minFret - 1) : fretLineY(0) - 20;
@@ -90,7 +91,7 @@ export function Fretboard({ fingering, onFret, onOpen }: FretboardProps) {
       })}
 
       {/* string note labels */}
-      {OPEN_G_TUNING.map((stringDef) => {
+      {tuning.map((stringDef) => {
         const topY =
           stringDef.minFret > 0 ? fretLineY(stringDef.minFret - 1) : fretLineY(0) - 20;
         return (
@@ -109,7 +110,7 @@ export function Fretboard({ fingering, onFret, onOpen }: FretboardProps) {
       })}
 
       {/* open-string targets */}
-      {OPEN_G_TUNING.map((stringDef) => {
+      {tuning.map((stringDef) => {
         const x = screenX(stringDef.index);
         const y =
           stringDef.minFret > 0 ? fretLineY(stringDef.minFret - 1) : fretLineY(0) - 20;
@@ -130,7 +131,7 @@ export function Fretboard({ fingering, onFret, onOpen }: FretboardProps) {
       })}
 
       {/* fretted positions */}
-      {OPEN_G_TUNING.flatMap((stringDef) =>
+      {tuning.flatMap((stringDef) =>
         Array.from({ length: NUM_FRETS }, (_, i) => i + 1)
           .filter((fret) => fret >= Math.max(stringDef.minFret, 1))
           .map((fret) => {

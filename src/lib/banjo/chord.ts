@@ -1,5 +1,5 @@
 import { Chord, Note } from "tonal";
-import { OPEN_G_TUNING, type Fingering } from "./tuning";
+import { OPEN_G_TUNING, type Fingering, type StringDef } from "./tuning";
 import { noteAtFret, pitchClass } from "./notes";
 
 /**
@@ -100,11 +100,11 @@ function bestChordNames(pitchClasses: string[]): string[] {
   return [...votes.entries()].sort((a, b) => b[1] - a[1]).map(([name]) => name);
 }
 
-export function detectChord(fingering: Fingering): ChordResult {
+export function detectChord(fingering: Fingering, tuning: StringDef[] = OPEN_G_TUNING): ChordResult {
   // The 5th string is a drone: include it only when the player has
   // deliberately fretted it, since its open note can clash with shapes
   // played higher up the neck (e.g. it turns a D7 shape into a Gsus4add9).
-  const soundingStrings = OPEN_G_TUNING.filter(
+  const soundingStrings = tuning.filter(
     (s) => s.index !== 0 || fingering[s.index] !== null
   );
   const notes = soundingStrings.map((s) => noteAtFret(s, fingering[s.index] ?? 0));

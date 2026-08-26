@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { detectChord } from "./chord";
 import { OPEN_FINGERING, type Fingering } from "./tuning";
+import { TUNINGS } from "./tunings";
 
 // String indices: 0 = 5th (drone), 1 = 4th, 2 = 3rd, 3 = 2nd, 4 = 1st.
 
@@ -89,5 +90,14 @@ describe("detectChord — no-match reasons", () => {
     // Adding B completes it into D-E-G-B, which bestChordNames ranks Em7 above G6 for.
     const bCompletion = result.completions?.find((c) => c.note === "B");
     expect(bCompletion?.chordName).toBe("Em7");
+  });
+});
+
+describe("detectChord — tuning parameter", () => {
+  it("detects against the given tuning instead of always assuming Open G", () => {
+    const doubleC = TUNINGS.find((t) => t.id === "double-c")!.strings;
+    const result = detectChord(OPEN_FINGERING, doubleC);
+    expect(result.primaryName).toBe("Csus2");
+    expect(result.primaryName).not.toBe("G");
   });
 });
