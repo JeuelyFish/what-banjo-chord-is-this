@@ -46,12 +46,20 @@ function notationTokens(strings: StringDef[]): string {
 // Deliberately roomy control heights so adjacent controls don't invite
 // mis-taps, especially the five side-by-side per-string pickers.
 const SELECT_TRIGGER_HEIGHT = "5rem";
-const NOTE_TRIGGER_SIZE = "5rem";
 
-// Matches the combined width of the five string pickers (5 × 5rem boxes +
-// 4 × gap-1.5 gaps) so the tuning select lines up with them edge-to-edge on
-// wide screens; capped at 100% so it still shrinks to fit narrow ones.
+// Each string picker is a square grid cell that scales between these two
+// bounds — 5rem when there's room, shrinking in step with the viewport down
+// to 3.5rem (still wide enough for a bold "F#" + small octave + the select's
+// chevron) before falling back to horizontal scroll.
+const NOTE_TRIGGER_MIN_SIZE = "3.5rem";
+const NOTE_TRIGGER_MAX_SIZE = "5rem";
+
+// Matches the combined width of the five string pickers at their largest
+// (5 × 5rem boxes + 4 × gap-1.5 gaps) so the tuning select — and the strings
+// row itself — line up edge-to-edge on wide screens; `min(100%, …)` lets
+// both shrink to fit narrower ones instead of overflowing.
 const TUNING_SELECT_WIDTH = "26.5rem";
+const STRINGS_ROW_WIDTH = `min(100%, ${TUNING_SELECT_WIDTH})`;
 
 // Caps the note picker's dropdown to roughly a dozen visible rows (scrolling
 // for the rest) so the full 48-note list doesn't overwhelm on tall screens.
@@ -185,17 +193,23 @@ export function SettingsDialog() {
               <div className="flex w-full flex-col gap-1.5">
                 <span className="text-sm font-semibold text-foreground/70">Strings</span>
                 {isCustomDraft ? (
-                  <div className="flex max-w-full gap-1.5 self-center overflow-x-auto pb-1">
+                  <div
+                    className="mx-auto grid gap-1.5 overflow-x-auto pb-1"
+                    style={{
+                      width: STRINGS_ROW_WIDTH,
+                      gridTemplateColumns: `repeat(5, minmax(${NOTE_TRIGGER_MIN_SIZE}, ${NOTE_TRIGGER_MAX_SIZE}))`,
+                    }}
+                  >
                     {OPEN_G_TUNING.map((s, i) => (
-                      <div key={s.index} className="flex shrink-0 flex-col items-center gap-1">
+                      <div key={s.index} className="flex min-w-0 flex-col items-center gap-1">
                         <Select.Root
-                          size="3"
+                          size={{ initial: "1", xs: "2", sm: "3" }}
                           value={customNotes[i]}
                           onValueChange={(note) => updateCustomNote(i, note)}
                         >
                           <Select.Trigger
                             aria-label={`${s.label} string note`}
-                            style={{ width: NOTE_TRIGGER_SIZE, height: NOTE_TRIGGER_SIZE, gap: 3 }}
+                            style={{ width: "100%", height: "auto", aspectRatio: "1", gap: 3 }}
                           >
                             <NoteLabel note={customNotes[i]} />
                           </Select.Trigger>
@@ -212,14 +226,20 @@ export function SettingsDialog() {
                     ))}
                   </div>
                 ) : (
-                  <div className="flex max-w-full gap-1.5 self-center overflow-x-auto pb-1">
+                  <div
+                    className="mx-auto grid gap-1.5 overflow-x-auto pb-1"
+                    style={{
+                      width: STRINGS_ROW_WIDTH,
+                      gridTemplateColumns: `repeat(5, minmax(${NOTE_TRIGGER_MIN_SIZE}, ${NOTE_TRIGGER_MAX_SIZE}))`,
+                    }}
+                  >
                     {previewStrings.map((s) => (
-                      <div key={s.index} className="flex shrink-0 flex-col items-center gap-1">
+                      <div key={s.index} className="flex min-w-0 flex-col items-center gap-1">
                         <div
-                          className="flex items-center justify-center text-base font-bold"
+                          className="flex items-center justify-center text-sm font-bold sm:text-base"
                           style={{
-                            width: NOTE_TRIGGER_SIZE,
-                            height: NOTE_TRIGGER_SIZE,
+                            width: "100%",
+                            aspectRatio: "1",
                             borderRadius: "var(--radius-3)",
                             backgroundColor: "var(--color-surface)",
                             boxShadow: "inset 0 0 0 1px var(--gray-a7)",
