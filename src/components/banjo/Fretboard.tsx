@@ -1,6 +1,7 @@
 "use client";
 
 import { OPEN_G_TUNING, NUM_FRETS, type Fingering, type StringIndex } from "@/lib/banjo/tuning";
+import { pitchClass } from "@/lib/banjo/notes";
 
 const FRET_HEIGHT = 40;
 const STRING_SPACING = 32;
@@ -88,15 +89,22 @@ export function Fretboard({ fingering, onFret, onOpen }: FretboardProps) {
         );
       })}
 
-      {/* 5th string label */}
-      <text
-        x={screenX(0)}
-        y={fretLineY(OPEN_G_TUNING[0].minFret - 1) - 8}
-        textAnchor="middle"
-        className="fill-foreground/50 text-[11px]"
-      >
-        5th
-      </text>
+      {/* string note labels */}
+      {OPEN_G_TUNING.map((stringDef) => {
+        const topY =
+          stringDef.minFret > 0 ? fretLineY(stringDef.minFret - 1) : fretLineY(0) - 20;
+        return (
+          <text
+            key={stringDef.index}
+            x={screenX(stringDef.index)}
+            y={topY - 8}
+            textAnchor="middle"
+            className="fill-foreground/50 text-[11px]"
+          >
+            {pitchClass(stringDef.openNote)}
+          </text>
+        );
+      })}
 
       {/* open-string targets */}
       {OPEN_G_TUNING.map((stringDef) => {

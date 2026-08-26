@@ -49,13 +49,17 @@ export function PartialChordDialog({ completions, notes }: PartialChordDialogPro
           <p className="mt-1 text-sm text-foreground/70">
             Current Notes: {notes.join(", ")}
           </p>
-          <ul className="mt-4 flex flex-col divide-y divide-foreground/10">
+          <div className="mt-4 flex items-center justify-between text-xs font-semibold tracking-wide text-foreground/50 uppercase">
+            <span>Add note</span>
+            <span>Get chord</span>
+          </div>
+          <ul className="flex flex-col divide-y divide-foreground/10">
             {completions.map(({ note, chordName }) => (
               <li
                 key={note}
                 className="flex items-center justify-between py-2 text-sm"
               >
-                <span className="font-bold">+ {note}</span>
+                <span className="font-bold">{note}</span>
                 <span className="text-foreground/70">{chordName}</span>
               </li>
             ))}
