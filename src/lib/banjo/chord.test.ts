@@ -72,4 +72,16 @@ describe("detectChord — no-match reasons", () => {
     expect(result.names).toEqual([]);
     expect(result.reason).toBe("cluster");
   });
+
+  it("reports partial-chord for a fragment that's one note away from a real chord", () => {
+    // 4th open (D), 3rd open (G), 2nd string fret 5 (E), 1st open (D) ->
+    // {D, E, G}: 3 of Em7 and G6's 4 notes (both are D-E-G-B), missing only
+    // the B. Not a clash (D-E is a whole step), so this should fall through
+    // to partial-chord rather than cluster or a match.
+    const fingering: Fingering = { 0: null, 1: null, 2: null, 3: 5, 4: null };
+    const result = detectChord(fingering);
+    expect(result.names).toEqual([]);
+    expect(result.reason).toBe("partial-chord");
+    expect(result.pitchClasses.sort()).toEqual(["D", "E", "G"]);
+  });
 });

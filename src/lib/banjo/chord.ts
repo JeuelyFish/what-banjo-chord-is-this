@@ -7,7 +7,7 @@ import { noteAtFret, pitchClass } from "./notes";
  * than a bare dash. Computed from properties of the note set itself, not a
  * guess at what the player "meant" — no chord is invented or corrected.
  */
-export type NoMatchReason = "too-few-notes" | "cluster" | "no-match";
+export type NoMatchReason = "too-few-notes" | "cluster" | "partial-chord" | "no-match";
 
 export interface ChordResult {
   names: string[];
@@ -32,9 +32,28 @@ function hasHalfStepClash(pitchClasses: string[]): boolean {
   );
 }
 
+const CHROMATIC_PITCH_CLASSES = [
+  "C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B",
+];
+
+/**
+ * True if adding any single note to this set would complete some known
+ * chord. Doesn't say which note or which chord — an exhaustive check found
+ * every real "no-match" 3-note fragment has several unrelated single-note
+ * completions, not one obvious answer, so naming a specific one would mean
+ * arbitrarily picking a winner rather than reporting a fact.
+ */
+function isOneNoteAway(pitchClasses: string[]): boolean {
+  return CHROMATIC_PITCH_CLASSES.some((note) => {
+    if (pitchClasses.includes(note)) return false;
+    return bestChordNames([...pitchClasses, note]).length > 0;
+  });
+}
+
 function noMatchReason(pitchClasses: string[]): NoMatchReason {
   if (pitchClasses.length < 3) return "too-few-notes";
   if (hasHalfStepClash(pitchClasses)) return "cluster";
+  if (isOneNoteAway(pitchClasses)) return "partial-chord";
   return "no-match";
 }
 
@@ -59,6 +78,17 @@ function friendlyName(symbol: string): string {
  * voting on the most-agreed-upon root (ignoring bass position) gives a
  * stable answer that matches how these shapes are actually taught.
  */
+function bestChordNames(pitchClasses: string[]): string[] {
+  const votes = new Map<string, number>();
+  for (const rotation of rotations(pitchClasses)) {
+    const top = Chord.detect(rotation)[0];
+    if (!top) continue;
+    const name = friendlyName(top);
+    votes.set(name, (votes.get(name) ?? 0) + 1);
+  }
+  return [...votes.entries()].sort((a, b) => b[1] - a[1]).map(([name]) => name);
+}
+
 export function detectChord(fingering: Fingering): ChordResult {
   // The 5th string is a drone: include it only when the player has
   // deliberately fretted it, since its open note can clash with shapes
@@ -68,15 +98,7 @@ export function detectChord(fingering: Fingering): ChordResult {
   );
   const notes = soundingStrings.map((s) => noteAtFret(s, fingering[s.index] ?? 0));
   const pitchClasses = Array.from(new Set(notes.map(pitchClass)));
-
-  const votes = new Map<string, number>();
-  for (const rotation of rotations(pitchClasses)) {
-    const top = Chord.detect(rotation)[0];
-    if (!top) continue;
-    const name = friendlyName(top);
-    votes.set(name, (votes.get(name) ?? 0) + 1);
-  }
-  const names = [...votes.entries()].sort((a, b) => b[1] - a[1]).map(([name]) => name);
+  const names = bestChordNames(pitchClasses);
 
   return {
     names,

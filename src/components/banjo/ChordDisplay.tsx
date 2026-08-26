@@ -7,6 +7,8 @@ interface ChordDisplayProps {
 const REASON_MESSAGE: Record<NoMatchReason, string> = {
   "too-few-notes": "Add another note to form a chord",
   cluster: "These notes clash — no standard chord has two notes a half-step apart",
+  "partial-chord":
+    "This looks like part of a chord — one different note could complete it into one of several possible chords",
   "no-match": "Not a recognized chord",
 };
 
