@@ -39,5 +39,5 @@ body {
 }
 
 .animate-spin-once {
-  animation: spin-once 0.5s;
+  animation: spin-once 0.33s;
 }
