@@ -36,7 +36,7 @@ export function FretboardSection() {
   }
 
   return (
-    <div className="flex flex-col items-center gap-10 sm:flex-row sm:items-center sm:justify-center">
+    <div className="flex flex-col items-center gap-1 sm:flex-row sm:items-center sm:justify-center">
       <Fretboard fingering={fingering} tuning={tuning} onFret={handleFret} onOpen={handleOpen} />
       <ChordDisplay result={chordResult} />
     </div>
