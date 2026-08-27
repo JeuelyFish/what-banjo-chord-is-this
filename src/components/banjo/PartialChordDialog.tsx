@@ -21,7 +21,7 @@ export function PartialChordDialog({ completions, notes }: PartialChordDialogPro
       </Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-foreground/40 backdrop-blur-[1px]" />
-        <Dialog.Content className="fixed top-1/2 left-1/2 w-full max-w-sm -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-foreground/10 bg-background p-6 shadow-2xl shadow-foreground/20 sm:max-w-lg">
+        <Dialog.Content className="fixed top-1/2 left-1/2 w-full max-w-sm -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-foreground/10 bg-background p-6 shadow-2xl shadow-foreground/20">
           <Dialog.Close asChild>
             <button
               type="button"
@@ -44,7 +44,7 @@ export function PartialChordDialog({ completions, notes }: PartialChordDialogPro
             </button>
           </Dialog.Close>
           <Dialog.Title className="pr-6 text-lg font-bold">
-            Possible chords
+            Possible Chords
           </Dialog.Title>
           <p className="mt-1 text-sm text-foreground/70">
             Current Notes: {notes.join(", ")}
