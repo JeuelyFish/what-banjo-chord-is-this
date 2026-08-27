@@ -3,11 +3,27 @@
 import { NUM_FRETS, type Fingering, type StringDef, type StringIndex } from "@/lib/banjo/tuning";
 import { pitchClass } from "@/lib/banjo/notes";
 
-const FRET_HEIGHT = 40;
-const STRING_SPACING = 32;
-const NECK_TOP_MARGIN = 56;
-const SIDE_MARGIN = 28;
-const DOT_RADIUS = 12;
+// Scales the whole fretboard (width, spacing, dots, strokes, labels)
+// uniformly. Base values below were tuned at SCALE = 1 for a ~184px-wide
+// board; SCALE = 1.8 brings it to ~333px while keeping every part in the
+// same proportion to each other.
+const SCALE = 1.1;
+
+const FRET_HEIGHT = 40 * SCALE;
+const STRING_SPACING = 32 * SCALE;
+const NECK_TOP_MARGIN = 56 * SCALE;
+const SIDE_MARGIN = 28 * SCALE;
+const DOT_RADIUS = 12 * SCALE;
+const OPEN_STRING_OVERHANG = 20 * SCALE;
+const STRING_LABEL_GAP = 16 * SCALE;
+const FRET_NUMBER_GAP = 12 * SCALE;
+const OPEN_TARGET_INSET = 3 * SCALE;
+const NUT_STROKE_WIDTH = 3 * SCALE;
+const FRET_LINE_STROKE_WIDTH = 1 * SCALE;
+const STRING_STROKE_WIDTH = 2 * SCALE;
+const OPEN_TARGET_STROKE_WIDTH = 2 * SCALE;
+const FRETTED_TARGET_STROKE_WIDTH = 1 * SCALE;
+const BOTTOM_MARGIN = 20 * SCALE;
 
 // Rendered left-to-right as viewed head-on (looking at the front of the
 // banjo, playing hand toward you): the short 5th drone string on the left,
@@ -15,7 +31,7 @@ const DOT_RADIUS = 12;
 const DISPLAY_ORDER: StringIndex[] = [0, 1, 2, 3, 4];
 
 const svgWidth = SIDE_MARGIN * 2 + STRING_SPACING * (DISPLAY_ORDER.length - 1);
-const svgHeight = NECK_TOP_MARGIN + FRET_HEIGHT * NUM_FRETS + 20;
+const svgHeight = NECK_TOP_MARGIN + FRET_HEIGHT * NUM_FRETS + BOTTOM_MARGIN;
 
 function screenX(stringIndex: StringIndex): number {
   return SIDE_MARGIN + DISPLAY_ORDER.indexOf(stringIndex) * STRING_SPACING;
@@ -54,7 +70,7 @@ export function Fretboard({ fingering, tuning, onFret, onOpen }: FretboardProps)
           y1={fretLineY(fret)}
           y2={fretLineY(fret)}
           className={fret === 0 ? "stroke-foreground" : "stroke-foreground/30"}
-          strokeWidth={fret === 0 ? 3 : 1}
+          strokeWidth={fret === 0 ? NUT_STROKE_WIDTH : FRET_LINE_STROKE_WIDTH}
         />
       ))}
 
@@ -62,11 +78,11 @@ export function Fretboard({ fingering, tuning, onFret, onOpen }: FretboardProps)
       {Array.from({ length: NUM_FRETS }, (_, i) => i + 1).map((fret) => (
         <text
           key={fret}
-          x={SIDE_MARGIN - 12}
+          x={SIDE_MARGIN - FRET_NUMBER_GAP}
           y={dotY(fret)}
           textAnchor="end"
           dominantBaseline="middle"
-          className="fill-foreground/40 text-[11px]"
+          className="fill-foreground/40 text-[20px]"
         >
           {fret}
         </text>
@@ -76,7 +92,9 @@ export function Fretboard({ fingering, tuning, onFret, onOpen }: FretboardProps)
       {tuning.map((stringDef) => {
         const x = screenX(stringDef.index);
         const topY =
-          stringDef.minFret > 0 ? fretLineY(stringDef.minFret - 1) : fretLineY(0) - 20;
+          stringDef.minFret > 0
+            ? fretLineY(stringDef.minFret - 1)
+            : fretLineY(0) - OPEN_STRING_OVERHANG;
         return (
           <line
             key={stringDef.index}
@@ -85,7 +103,7 @@ export function Fretboard({ fingering, tuning, onFret, onOpen }: FretboardProps)
             y1={topY}
             y2={fretLineY(NUM_FRETS)}
             className="stroke-foreground/60"
-            strokeWidth={2}
+            strokeWidth={STRING_STROKE_WIDTH}
           />
         );
       })}
@@ -93,14 +111,16 @@ export function Fretboard({ fingering, tuning, onFret, onOpen }: FretboardProps)
       {/* string note labels */}
       {tuning.map((stringDef) => {
         const topY =
-          stringDef.minFret > 0 ? fretLineY(stringDef.minFret - 1) : fretLineY(0) - 20;
+          stringDef.minFret > 0
+            ? fretLineY(stringDef.minFret - 1)
+            : fretLineY(0) - OPEN_STRING_OVERHANG;
         return (
           <text
             key={stringDef.index}
             x={screenX(stringDef.index)}
-            y={topY - 16}
+            y={topY - STRING_LABEL_GAP}
             textAnchor="middle"
-            className="fill-foreground/50 text-[11px]"
+            className="fill-foreground/50 text-[20px]"
           >
             {stringDef.minFret > 0
               ? pitchClass(stringDef.openNote).toLowerCase()
@@ -113,19 +133,21 @@ export function Fretboard({ fingering, tuning, onFret, onOpen }: FretboardProps)
       {tuning.map((stringDef) => {
         const x = screenX(stringDef.index);
         const y =
-          stringDef.minFret > 0 ? fretLineY(stringDef.minFret - 1) : fretLineY(0) - 20;
+          stringDef.minFret > 0
+            ? fretLineY(stringDef.minFret - 1)
+            : fretLineY(0) - OPEN_STRING_OVERHANG;
         const isOpen = fingering[stringDef.index] === null;
         return (
           <circle
             key={stringDef.index}
             cx={x}
             cy={y}
-            r={DOT_RADIUS - 3}
+            r={DOT_RADIUS - OPEN_TARGET_INSET}
             onClick={() => onOpen(stringDef.index)}
             className={`cursor-pointer stroke-foreground/60 ${
               isOpen ? "fill-transparent" : "fill-transparent hover:fill-accent/20"
             }`}
-            strokeWidth={isOpen ? 2 : 1}
+            strokeWidth={isOpen ? OPEN_TARGET_STROKE_WIDTH : FRETTED_TARGET_STROKE_WIDTH}
           />
         );
       })}
