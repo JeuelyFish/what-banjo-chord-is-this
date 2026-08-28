@@ -65,7 +65,7 @@ const STRINGS_ROW_WIDTH = `min(100%, ${TUNING_SELECT_WIDTH})`;
 // for the rest) so the full 48-note list doesn't overwhelm on tall screens.
 const NOTE_CONTENT_MAX_HEIGHT = "24rem";
 
-export function SettingsDialog() {
+export function TuningSettingsDialog() {
   const tuningId = useSettingsStore((s) => s.tuningId);
   const setTuningId = useSettingsStore((s) => s.setTuningId);
   const customStrings = useSettingsStore((s) => s.customStrings);
@@ -77,15 +77,15 @@ export function SettingsDialog() {
 
   function handleGearClick() {
     setSpinning(true);
-  }
-
-  function handleSpinEnd() {
-    setSpinning(false);
     setSelectedId(tuningId);
     if (tuningId === CUSTOM_TUNING_ID) {
       setCustomNotes(toDraftNotes(customStrings ?? OPEN_G_TUNING));
     }
     setOpen(true);
+  }
+
+  function handleSpinEnd() {
+    setSpinning(false);
   }
 
   function handleTuningSelect(id: string) {
@@ -127,13 +127,13 @@ export function SettingsDialog() {
     <Dialog.Root open={open} onOpenChange={setOpen}>
       <button
         type="button"
-        aria-label="Settings"
+        aria-label="Tuning Settings"
         onClick={handleGearClick}
-        className="cursor-pointer text-foreground/60 transition-colors hover:text-foreground"
+        className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-foreground/10 bg-background text-foreground/60 shadow-sm transition-colors hover:bg-foreground/5 hover:text-foreground"
       >
         <GearIcon
-          width={28}
-          height={28}
+          width={20}
+          height={20}
           aria-hidden="true"
           onAnimationEnd={handleSpinEnd}
           className={spinning ? "animate-spin-once" : ""}
@@ -163,7 +163,7 @@ export function SettingsDialog() {
               </svg>
             </button>
           </Dialog.Close>
-          <Dialog.Title className="pr-6 text-lg font-bold">Settings</Dialog.Title>
+          <Dialog.Title className="pr-6 text-lg font-bold">Tuning Settings</Dialog.Title>
 
           <Theme accentColor="brown" hasBackground={false} radius="large" className="contents">
             <div className="mt-5 flex flex-col items-center gap-4">

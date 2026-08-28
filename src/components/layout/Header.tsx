@@ -1,16 +1,22 @@
 import { AudioSettingsDialog } from "./AudioSettingsDialog";
-import { SettingsDialog } from "./SettingsDialog";
+import { TuningSettingsDialog } from "./TuningSettingsDialog";
 
 export function Header() {
   return (
-    <header className="flex items-center justify-between border-b border-black/10 px-6 py-4">
-      <span className="text-lg font-semibold tracking-tight">
+    <>
+      <span className="fixed top-3 left-3 z-20 hidden text-lg font-semibold tracking-tight md:top-5 md:left-6 md:block">
         What Banjo Chord Is This?
       </span>
-      <div className="flex items-center gap-4">
+      <span
+        className="fixed top-1/2 left-2 z-20 -translate-y-1/2 font-semibold tracking-tight whitespace-nowrap md:hidden"
+        style={{ writingMode: "vertical-rl", lineHeight: "2.5rem", fontSize: "2.5rem" }}
+      >
+        What Banjo Chord Is This?
+      </span>
+      <div className="fixed top-3 right-3 z-20 flex flex-col items-center gap-2 sm:top-5 sm:right-6 sm:gap-3">
         <AudioSettingsDialog />
-        <SettingsDialog />
+        <TuningSettingsDialog />
       </div>
-    </header>
+    </>
   );
 }

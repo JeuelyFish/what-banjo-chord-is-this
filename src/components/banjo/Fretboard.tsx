@@ -9,7 +9,7 @@ import { pitchClass } from "@/lib/banjo/notes";
 // same proportion to each other.
 const SCALE = 1.1;
 
-const FRET_HEIGHT = 40 * SCALE;
+export const FRET_HEIGHT = 40 * SCALE;
 const STRING_SPACING = 32 * SCALE;
 const NECK_TOP_MARGIN = 56 * SCALE;
 const SIDE_MARGIN = 28 * SCALE;
@@ -23,7 +23,7 @@ const FRET_LINE_STROKE_WIDTH = 1 * SCALE;
 const STRING_STROKE_WIDTH = 2 * SCALE;
 const OPEN_TARGET_STROKE_WIDTH = 2 * SCALE;
 const FRETTED_TARGET_STROKE_WIDTH = 1 * SCALE;
-const BOTTOM_MARGIN = 20 * SCALE;
+const BOTTOM_MARGIN = 0;
 
 // Rendered left-to-right as viewed head-on (looking at the front of the
 // banjo, playing hand toward you): the short 5th drone string on the left,
@@ -36,6 +36,11 @@ const svgHeight = NECK_TOP_MARGIN + FRET_HEIGHT * NUM_FRETS + BOTTOM_MARGIN;
 // The fretboard's rendered pixel width, exposed so sibling UI (e.g. the
 // strum button) can match it exactly rather than guessing at a layout width.
 export const FRETBOARD_WIDTH = svgWidth;
+
+// The span between the outermost strings (i.e. excluding the side margins),
+// exposed so sibling UI (e.g. the strum button) can line up its edges with
+// the fretboard's outer string lines instead of the wider SVG bounding box.
+export const FRETBOARD_STRINGS_WIDTH = STRING_SPACING * (DISPLAY_ORDER.length - 1);
 
 function screenX(stringIndex: StringIndex): number {
   return SIDE_MARGIN + DISPLAY_ORDER.indexOf(stringIndex) * STRING_SPACING;
@@ -86,7 +91,7 @@ export function Fretboard({ fingering, tuning, onFret, onOpen }: FretboardProps)
           y={dotY(fret)}
           textAnchor="end"
           dominantBaseline="middle"
-          className="fill-foreground/40 text-[20px]"
+          className="fill-foreground/40 text-[17px]"
         >
           {fret}
         </text>
@@ -124,7 +129,7 @@ export function Fretboard({ fingering, tuning, onFret, onOpen }: FretboardProps)
             x={screenX(stringDef.index)}
             y={topY - STRING_LABEL_GAP}
             textAnchor="middle"
-            className="fill-foreground/50 text-[20px]"
+            className="fill-foreground/50 text-[14px]"
           >
             {stringDef.minFret > 0
               ? pitchClass(stringDef.openNote).toLowerCase()

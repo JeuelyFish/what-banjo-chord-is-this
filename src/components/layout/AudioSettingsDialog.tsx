@@ -48,6 +48,7 @@ export function AudioSettingsDialog() {
   const setChordSoundEnabled = useAudioSettingsStore((s) => s.setChordSoundEnabled);
   const setStrumSpreadMs = useAudioSettingsStore((s) => s.setStrumSpreadMs);
   const [open, setOpen] = useState(false);
+  const [shaking, setShaking] = useState(false);
 
   const subControlsDisabled = volume === 0;
   const strumSliderDisabled = volume === 0 || !chordSoundEnabled;
@@ -57,10 +58,18 @@ export function AudioSettingsDialog() {
       <Dialog.Trigger asChild>
         <button
           type="button"
-          aria-label="Audio settings"
-          className="cursor-pointer text-foreground/60 transition-colors hover:text-foreground"
+          aria-label="Audio Settings"
+          onClick={() => setShaking(true)}
+          className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-foreground/10 bg-background text-foreground/60 shadow-sm transition-colors hover:bg-foreground/5 hover:text-foreground"
         >
-          <VolumeIcon volume={volume} width={28} height={28} aria-hidden="true" />
+          <VolumeIcon
+            volume={volume}
+            width={20}
+            height={20}
+            aria-hidden="true"
+            onAnimationEnd={() => setShaking(false)}
+            className={shaking ? "animate-shake-once" : ""}
+          />
         </button>
       </Dialog.Trigger>
       <Dialog.Portal>
@@ -77,7 +86,7 @@ export function AudioSettingsDialog() {
               </svg>
             </button>
           </Dialog.Close>
-          <Dialog.Title className="pr-6 text-lg font-bold">Audio settings</Dialog.Title>
+          <Dialog.Title className="pr-6 text-lg font-bold">Audio Settings</Dialog.Title>
 
           <Theme accentColor="brown" hasBackground={false} radius="large" className="contents">
             <div className="mt-5 flex flex-col gap-4">

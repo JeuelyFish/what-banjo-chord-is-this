@@ -41,3 +41,25 @@ body {
 .animate-spin-once {
   animation: spin-once 0.33s;
 }
+
+@keyframes shake-once {
+  0%, 100% {
+    transform: rotate(0deg) scale(1);
+  }
+  20% {
+    transform: rotate(-18deg) scale(1.15);
+  }
+  40% {
+    transform: rotate(14deg) scale(1.15);
+  }
+  60% {
+    transform: rotate(-10deg) scale(1.1);
+  }
+  80% {
+    transform: rotate(6deg) scale(1.05);
+  }
+}
+
+.animate-shake-once {
+  animation: shake-once 0.4s ease-out;
+}

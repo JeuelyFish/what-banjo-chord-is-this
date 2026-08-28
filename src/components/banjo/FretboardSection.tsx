@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Fretboard, FRETBOARD_WIDTH } from "./Fretboard";
+import { Fretboard, FRETBOARD_WIDTH, FRETBOARD_STRINGS_WIDTH, FRET_HEIGHT } from "./Fretboard";
 import { ChordDisplay } from "./ChordDisplay";
 import { StrumButton } from "./StrumButton";
 import { detectChord } from "@/lib/banjo/chord";
@@ -57,9 +57,13 @@ export function FretboardSection() {
 
   return (
     <div className="flex flex-col items-center gap-1 sm:flex-row sm:items-center sm:justify-center">
-      <div className="flex flex-col items-center gap-2" style={{ width: FRETBOARD_WIDTH }}>
+      <div className="flex flex-col items-center" style={{ width: FRETBOARD_WIDTH }}>
         <Fretboard fingering={fingering} tuning={tuning} onFret={handleFret} onOpen={handleOpen} />
-        {showStrumButton && <StrumButton onStrum={handleStrum} />}
+        {showStrumButton && (
+          <div className="mb-[11px]" style={{ width: FRETBOARD_STRINGS_WIDTH, height: FRET_HEIGHT }}>
+            <StrumButton onStrum={handleStrum} />
+          </div>
+        )}
       </div>
       <ChordDisplay result={chordResult} />
     </div>

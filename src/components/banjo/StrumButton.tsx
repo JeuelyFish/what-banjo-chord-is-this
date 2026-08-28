@@ -11,7 +11,7 @@ export function StrumButton({ onStrum }: StrumButtonProps) {
     <button
       type="button"
       onClick={onStrum}
-      className="flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-full border border-accent px-3 py-1 text-sm font-medium text-accent transition-colors hover:bg-accent/10"
+      className="flex h-full w-full cursor-pointer items-center justify-center gap-1.5 rounded-b-full border border-accent px-3 text-sm font-medium text-accent transition-colors hover:bg-accent/10"
     >
       <PlayIcon aria-hidden="true" />
       Strum
