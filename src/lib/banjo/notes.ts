@@ -1,5 +1,5 @@
 import { Note } from "tonal";
-import type { StringDef } from "./tuning";
+import type { Fingering, StringDef } from "./tuning";
 
 /** Returns the sounding note (e.g. "E3") for an open string plus a fret offset. */
 export function noteAtFret(stringDef: StringDef, fret: number): string {
@@ -27,6 +27,18 @@ export function noteOctave(note: string): number {
 /** True if `note` is a real, pitched note tonal can parse (e.g. "G4"). */
 export function isValidNote(note: string): boolean {
   return Note.midi(note) != null;
+}
+
+/**
+ * Every string's currently sounding note, 5th string first — unlike chord
+ * *detection*, which deliberately excludes an unfretted drone string (see
+ * chord.ts), playback always sounds it: that's what a drone string does on
+ * a real banjo.
+ */
+export function allSoundingNotes(fingering: Fingering, tuning: StringDef[]): string[] {
+  return [...tuning]
+    .sort((a, b) => a.index - b.index)
+    .map((s) => noteAtFret(s, fingering[s.index] ?? 0));
 }
 
 // Chromatic pitch classes, used to populate custom-tuning note pickers.

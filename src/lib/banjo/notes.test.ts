@@ -1,7 +1,9 @@
 import { Note } from "tonal";
 import { describe, expect, it } from "vitest";
-import { isValidNote, noteAtFret, NOTE_OPTIONS, noteOctave, OCTAVES, pitchClass, PITCH_CLASSES } from "./notes";
-import { OPEN_G_TUNING } from "./tuning";
+import { allSoundingNotes, isValidNote, noteAtFret, NOTE_OPTIONS, noteOctave, OCTAVES, pitchClass, PITCH_CLASSES } from "./notes";
+import { detectChord } from "./chord";
+import { TUNINGS } from "./tunings";
+import { OPEN_FINGERING, OPEN_G_TUNING, type Fingering, type StringDef } from "./tuning";
 
 const fourthString = OPEN_G_TUNING[1]; // D3
 const fifthString = OPEN_G_TUNING[0]; // G4, minFret 5
@@ -60,6 +62,34 @@ describe("PITCH_CLASSES and OCTAVES", () => {
         expect(noteOctave(note)).toBe(oct);
       }
     }
+  });
+});
+
+describe("allSoundingNotes", () => {
+  it("returns every string's open note, 5th string first", () => {
+    expect(allSoundingNotes(OPEN_FINGERING, OPEN_G_TUNING)).toEqual(["G4", "D3", "G3", "B3", "D4"]);
+  });
+
+  it("includes the drone even when unfretted, unlike detectChord", () => {
+    const d7WithOpenFifth: Fingering = { 0: null, 1: 4, 2: 2, 3: 1, 4: null };
+    expect(allSoundingNotes(d7WithOpenFifth, OPEN_G_TUNING)).toHaveLength(5);
+    // detectChord ignores that same open drone note for naming purposes.
+    expect(detectChord(d7WithOpenFifth).primaryName).toBe("D7");
+  });
+
+  it("reflects fretted positions", () => {
+    const cShape: Fingering = { 0: null, 1: 2, 2: null, 3: 1, 4: 2 };
+    expect(allSoundingNotes(cShape, OPEN_G_TUNING)).toEqual(["G4", "E3", "G3", "C4", "E4"]);
+  });
+
+  it("works against a tuning other than Open G", () => {
+    const doubleC = TUNINGS.find((t) => t.id === "double-c")!.strings;
+    expect(allSoundingNotes(OPEN_FINGERING, doubleC)).toEqual(["G4", "C3", "G3", "C4", "D4"]);
+  });
+
+  it("orders output by string index regardless of input array order", () => {
+    const shuffled: StringDef[] = [...OPEN_G_TUNING].reverse();
+    expect(allSoundingNotes(OPEN_FINGERING, shuffled)).toEqual(["G4", "D3", "G3", "B3", "D4"]);
   });
 });
 

@@ -1,3 +1,4 @@
+import { AudioSettingsDialog } from "./AudioSettingsDialog";
 import { SettingsDialog } from "./SettingsDialog";
 
 export function Header() {
@@ -6,7 +7,10 @@ export function Header() {
       <span className="text-lg font-semibold tracking-tight">
         What Banjo Chord Is This?
       </span>
-      <SettingsDialog />
+      <div className="flex items-center gap-4">
+        <AudioSettingsDialog />
+        <SettingsDialog />
+      </div>
     </header>
   );
 }

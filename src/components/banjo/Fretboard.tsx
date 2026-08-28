@@ -33,6 +33,10 @@ const DISPLAY_ORDER: StringIndex[] = [0, 1, 2, 3, 4];
 const svgWidth = SIDE_MARGIN * 2 + STRING_SPACING * (DISPLAY_ORDER.length - 1);
 const svgHeight = NECK_TOP_MARGIN + FRET_HEIGHT * NUM_FRETS + BOTTOM_MARGIN;
 
+// The fretboard's rendered pixel width, exposed so sibling UI (e.g. the
+// strum button) can match it exactly rather than guessing at a layout width.
+export const FRETBOARD_WIDTH = svgWidth;
+
 function screenX(stringIndex: StringIndex): number {
   return SIDE_MARGIN + DISPLAY_ORDER.indexOf(stringIndex) * STRING_SPACING;
 }
