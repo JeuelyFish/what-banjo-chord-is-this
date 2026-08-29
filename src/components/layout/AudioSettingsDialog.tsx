@@ -11,6 +11,10 @@ import {
 import { Slider, Switch, Theme } from "@radix-ui/themes";
 import "@radix-ui/themes/styles.css";
 import { useAudioSettingsStore } from "@/lib/store/audioSettingsStore";
+import { useFingeringStore } from "@/lib/store/fingeringStore";
+import { useTuning } from "@/lib/store/settingsStore";
+import { allSoundingNotes } from "@/lib/banjo/notes";
+import { playPreviewNote, playPreviewNotes } from "@/lib/audio/audioEngine";
 
 function VolumeIcon({ volume, ...props }: { volume: number } & ComponentProps<typeof SpeakerLoudIcon>) {
   if (volume === 0) return <SpeakerOffIcon {...props} />;
@@ -47,11 +51,64 @@ export function AudioSettingsDialog() {
   const setFretClickSoundEnabled = useAudioSettingsStore((s) => s.setFretClickSoundEnabled);
   const setChordSoundEnabled = useAudioSettingsStore((s) => s.setChordSoundEnabled);
   const setStrumSpreadMs = useAudioSettingsStore((s) => s.setStrumSpreadMs);
+  const fingering = useFingeringStore((s) => s.fingering);
+  const tuning = useTuning();
   const [open, setOpen] = useState(false);
   const [shaking, setShaking] = useState(false);
 
-  const subControlsDisabled = volume === 0;
-  const strumSliderDisabled = volume === 0 || !chordSoundEnabled;
+  const [draftVolume, setDraftVolume] = useState(volume);
+  const [draftFretClickEnabled, setDraftFretClickEnabled] = useState(fretClickSoundEnabled);
+  const [draftChordSoundEnabled, setDraftChordSoundEnabled] = useState(chordSoundEnabled);
+  const [draftStrumSpreadMs, setDraftStrumSpreadMs] = useState(strumSpreadMs);
+
+  function handleTriggerClick() {
+    setShaking(true);
+    setDraftVolume(volume);
+    setDraftFretClickEnabled(fretClickSoundEnabled);
+    setDraftChordSoundEnabled(chordSoundEnabled);
+    setDraftStrumSpreadMs(strumSpreadMs);
+  }
+
+  const firstStringNote = tuning.find((s) => s.index === 4)!.openNote;
+
+  // Sliders only preview on release (onValueCommit), not on every tick of a
+  // drag (onValueChange) — otherwise scrubbing fires a burst of overlapping
+  // plucks. The switches below preview immediately since they only ever
+  // change in one discrete step.
+  function handleVolumeCommit(v: number) {
+    if (v > 0) playPreviewNote(firstStringNote, v / 100);
+  }
+
+  function handleFretClickToggle(enabled: boolean) {
+    setDraftFretClickEnabled(enabled);
+    if (enabled) playPreviewNote(firstStringNote, draftVolume / 100);
+  }
+
+  function handleChordSoundToggle(enabled: boolean) {
+    setDraftChordSoundEnabled(enabled);
+    if (enabled) playPreviewNotes(allSoundingNotes(fingering, tuning), draftStrumSpreadMs, draftVolume / 100);
+  }
+
+  function handleStrumSpreadCommit(ms: number) {
+    playPreviewNotes(allSoundingNotes(fingering, tuning), ms, draftVolume / 100);
+  }
+
+  function handleApply() {
+    setVolume(draftVolume);
+    setFretClickSoundEnabled(draftFretClickEnabled);
+    setChordSoundEnabled(draftChordSoundEnabled);
+    setStrumSpreadMs(draftStrumSpreadMs);
+    setOpen(false);
+  }
+
+  const isDirty =
+    draftVolume !== volume ||
+    draftFretClickEnabled !== fretClickSoundEnabled ||
+    draftChordSoundEnabled !== chordSoundEnabled ||
+    draftStrumSpreadMs !== strumSpreadMs;
+
+  const subControlsDisabled = draftVolume === 0;
+  const strumSliderDisabled = draftVolume === 0 || !draftChordSoundEnabled;
 
   return (
     <Dialog.Root open={open} onOpenChange={setOpen}>
@@ -59,7 +116,7 @@ export function AudioSettingsDialog() {
         <button
           type="button"
           aria-label="Audio Settings"
-          onClick={() => setShaking(true)}
+          onClick={handleTriggerClick}
           className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-foreground/10 bg-background text-foreground/60 shadow-sm transition-colors hover:bg-foreground/5 hover:text-foreground"
         >
           <VolumeIcon
@@ -96,8 +153,9 @@ export function AudioSettingsDialog() {
                   <SpeakerOffIcon aria-hidden="true" className="shrink-0 text-foreground/50" />
                   <Slider
                     size="2"
-                    value={[volume]}
-                    onValueChange={([v]) => setVolume(v)}
+                    value={[draftVolume]}
+                    onValueChange={([v]) => setDraftVolume(v)}
+                    onValueCommit={([v]) => handleVolumeCommit(v)}
                     min={0}
                     max={100}
                     step={1}
@@ -117,8 +175,8 @@ export function AudioSettingsDialog() {
                 <span className="text-sm font-semibold text-foreground/70">Fret click sound</span>
                 <Switch
                   size="2"
-                  checked={fretClickSoundEnabled}
-                  onCheckedChange={setFretClickSoundEnabled}
+                  checked={draftFretClickEnabled}
+                  onCheckedChange={handleFretClickToggle}
                   disabled={subControlsDisabled}
                 />
               </label>
@@ -129,8 +187,8 @@ export function AudioSettingsDialog() {
                 <span className="text-sm font-semibold text-foreground/70">Chord playback sound</span>
                 <Switch
                   size="2"
-                  checked={chordSoundEnabled}
-                  onCheckedChange={setChordSoundEnabled}
+                  checked={draftChordSoundEnabled}
+                  onCheckedChange={handleChordSoundToggle}
                   disabled={subControlsDisabled}
                 />
               </label>
@@ -141,8 +199,9 @@ export function AudioSettingsDialog() {
                   <TogetherIcon aria-hidden="true" className="shrink-0 text-foreground/50" />
                   <Slider
                     size="2"
-                    value={[strumSpreadMs]}
-                    onValueChange={([ms]) => setStrumSpreadMs(ms)}
+                    value={[draftStrumSpreadMs]}
+                    onValueChange={([ms]) => setDraftStrumSpreadMs(ms)}
+                    onValueCommit={([ms]) => handleStrumSpreadCommit(ms)}
                     min={0}
                     max={500}
                     step={10}
@@ -158,6 +217,15 @@ export function AudioSettingsDialog() {
               </div>
             </div>
           </Theme>
+
+          <button
+            type="button"
+            disabled={!isDirty}
+            onClick={handleApply}
+            className="mt-6 w-full cursor-pointer rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-background transition-opacity disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            Apply
+          </button>
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>

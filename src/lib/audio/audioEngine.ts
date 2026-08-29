@@ -32,8 +32,13 @@ const LOWPASS_MAX_HZ = 6000;
 // target exactly 0. Low enough to be inaudible by the time the buffer ends.
 const GAIN_FLOOR = 0.001;
 
-function pluck(ctx: AudioContext, frequency: number, startTime: number, volume: number): void {
-  if (volume <= 0) return;
+interface PluckVoice {
+  source: AudioBufferSourceNode;
+  gain: GainNode;
+}
+
+function pluck(ctx: AudioContext, frequency: number, startTime: number, volume: number): PluckVoice | null {
+  if (volume <= 0) return null;
 
   const samples = generateKarplusStrongBuffer({
     frequency,
@@ -69,6 +74,7 @@ function pluck(ctx: AudioContext, frequency: number, startTime: number, volume: 
     gain.disconnect();
   };
   source.start(startTime);
+  return { source, gain };
 }
 
 function frequencyOf(note: string): number {
@@ -93,4 +99,50 @@ export function playNotes(notes: string[], spreadMs: number, volume: number): vo
   notes.forEach((note, i) => {
     pluck(ctx, frequencyOf(note), ctx.currentTime + (i * spreadMs) / 1000, volume);
   });
+}
+
+// Voices started by the preview helpers below, so a new preview can cut off
+// whatever the previous one is still playing (including notes scheduled in
+// the future by a staggered playPreviewNotes that haven't sounded yet).
+let previewVoices: PluckVoice[] = [];
+
+// A quick fade rather than an instant stop, to avoid an audible click.
+const PREVIEW_STOP_FADE_SECONDS = 0.02;
+
+function stopPreviewVoices(ctx: AudioContext): void {
+  const now = ctx.currentTime;
+  for (const { source, gain } of previewVoices) {
+    gain.gain.cancelScheduledValues(now);
+    gain.gain.setValueAtTime(gain.gain.value, now);
+    gain.gain.linearRampToValueAtTime(GAIN_FLOOR, now + PREVIEW_STOP_FADE_SECONDS);
+    try {
+      source.stop(now + PREVIEW_STOP_FADE_SECONDS);
+    } catch {
+      // Already stopped/ended — nothing to do.
+    }
+  }
+  previewVoices = [];
+}
+
+/**
+ * Like `playNote`, but stops whatever the previous preview call started
+ * first. Meant for settings-UI previews, where rapid changes (a dragged
+ * slider, quick toggling) would otherwise stack up overlapping playback.
+ */
+export function playPreviewNote(note: string, volume: number): void {
+  const ctx = getAudioContext();
+  if (!ctx) return;
+  stopPreviewVoices(ctx);
+  const voice = pluck(ctx, frequencyOf(note), ctx.currentTime, volume);
+  if (voice) previewVoices.push(voice);
+}
+
+/** Like `playNotes`, but stops whatever the previous preview call started first — see `playPreviewNote`. */
+export function playPreviewNotes(notes: string[], spreadMs: number, volume: number): void {
+  const ctx = getAudioContext();
+  if (!ctx) return;
+  stopPreviewVoices(ctx);
+  previewVoices = notes
+    .map((note, i) => pluck(ctx, frequencyOf(note), ctx.currentTime + (i * spreadMs) / 1000, volume))
+    .filter((voice): voice is PluckVoice => voice !== null);
 }
