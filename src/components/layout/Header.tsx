@@ -13,7 +13,7 @@ export function Header() {
       >
         What Banjo Chord Is This?
       </span>
-      <div className="fixed top-3 right-3 flex flex-col items-center gap-2 sm:top-5 sm:right-6 sm:gap-3">
+      <div className="fixed top-3 right-3 z-20 flex flex-col items-center gap-2 sm:top-5 sm:right-6 sm:gap-3">
         <AudioSettingsDialog />
         <TuningSettingsDialog />
       </div>
