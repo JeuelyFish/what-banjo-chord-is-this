@@ -4,12 +4,14 @@
   --background: #faf7f2;
   --foreground: #2b2724;
   --accent: #8a5a3b;
+  --highlight: #2f7d5f;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-accent: var(--accent);
+  --color-highlight: var(--highlight);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }

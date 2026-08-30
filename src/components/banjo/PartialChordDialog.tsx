@@ -1,7 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
+import { RadioCards, Theme } from "@radix-ui/themes";
+import "@radix-ui/themes/styles.css";
 import type { PartialChordCompletion } from "@/lib/banjo/chord";
+import { useHighlightStore } from "@/lib/store/highlightStore";
 
 interface PartialChordDialogProps {
   completions: PartialChordCompletion[];
@@ -9,11 +13,29 @@ interface PartialChordDialogProps {
 }
 
 export function PartialChordDialog({ completions, notes }: PartialChordDialogProps) {
+  const highlightedNote = useHighlightStore((s) => s.highlightedNote);
+  const setHighlightedNote = useHighlightStore((s) => s.setHighlightedNote);
+  const [open, setOpen] = useState(false);
+  const [draftNote, setDraftNote] = useState<string | null>(highlightedNote);
+
+  function handleTriggerClick() {
+    setDraftNote(highlightedNote);
+  }
+
+  function handleFindNote() {
+    if (!draftNote) return;
+    setHighlightedNote(draftNote);
+    setOpen(false);
+  }
+
+  const isDirty = draftNote !== null && draftNote !== highlightedNote;
+
   return (
-    <Dialog.Root>
+    <Dialog.Root open={open} onOpenChange={setOpen}>
       <Dialog.Trigger asChild>
         <button
           type="button"
+          onClick={handleTriggerClick}
           className="cursor-pointer text-accent underline underline-offset-2 hover:text-accent/70"
         >
           several possible chords
@@ -53,17 +75,34 @@ export function PartialChordDialog({ completions, notes }: PartialChordDialogPro
             <span>Add note</span>
             <span>Get chord</span>
           </div>
-          <ul className="flex flex-col divide-y divide-foreground/10">
-            {completions.map(({ note, chordName }) => (
-              <li
-                key={note}
-                className="flex items-center justify-between py-2 text-sm"
-              >
-                <span className="font-bold">{note}</span>
-                <span className="text-foreground/70">{chordName}</span>
-              </li>
-            ))}
-          </ul>
+
+          <Theme accentColor="brown" hasBackground={false} radius="large" className="contents">
+            <RadioCards.Root
+              value={draftNote ?? undefined}
+              onValueChange={setDraftNote}
+              columns="1"
+              size="1"
+              className="mt-2"
+            >
+              {completions.map(({ note, chordName }) => (
+                <RadioCards.Item key={note} value={note} className="w-full">
+                  <span className="flex w-full items-center justify-between text-sm">
+                    <span className="font-bold">{note}</span>
+                    <span className="text-foreground/70">{chordName}</span>
+                  </span>
+                </RadioCards.Item>
+              ))}
+            </RadioCards.Root>
+          </Theme>
+
+          <button
+            type="button"
+            disabled={!isDirty}
+            onClick={handleFindNote}
+            className="mt-4 w-full cursor-pointer rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-background transition-opacity disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            Find Note For Chord
+          </button>
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>

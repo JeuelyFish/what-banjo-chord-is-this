@@ -2,6 +2,7 @@
 
 import { NUM_FRETS, type Fingering, type StringDef, type StringIndex } from "@/lib/banjo/tuning";
 import { pitchClass } from "@/lib/banjo/notes";
+import { highlightedPositions } from "@/lib/banjo/highlight";
 
 // Scales the whole fretboard (width, spacing, dots, strokes, labels)
 // uniformly. Base values below were tuned at SCALE = 1 for a ~184px-wide
@@ -24,6 +25,7 @@ const STRING_STROKE_WIDTH = 2 * SCALE;
 const OPEN_TARGET_STROKE_WIDTH = 2 * SCALE;
 const FRETTED_TARGET_STROKE_WIDTH = 1 * SCALE;
 const BOTTOM_MARGIN = 0;
+const HIGHLIGHT_LABEL_FONT_SIZE = 13 * SCALE;
 
 // Rendered left-to-right as viewed head-on (looking at the front of the
 // banjo, playing hand toward you): the short 5th drone string on the left,
@@ -59,9 +61,12 @@ interface FretboardProps {
   tuning: StringDef[];
   onFret: (stringIndex: StringIndex, fret: number) => void;
   onOpen: (stringIndex: StringIndex) => void;
+  highlightedNote?: string | null;
 }
 
-export function Fretboard({ fingering, tuning, onFret, onOpen }: FretboardProps) {
+export function Fretboard({ fingering, tuning, onFret, onOpen, highlightedNote }: FretboardProps) {
+  const highlighted = highlightedNote ? highlightedPositions(tuning, highlightedNote) : [];
+
   return (
     <svg
       viewBox={`0 0 ${svgWidth} ${svgHeight}`}
@@ -181,6 +186,42 @@ export function Fretboard({ fingering, tuning, onFret, onOpen }: FretboardProps)
             );
           })
       )}
+
+      {/* highlight markers */}
+      {highlighted.map(({ stringIndex, fret }) => {
+        const stringDef = tuning.find((s) => s.index === stringIndex)!;
+        const x = screenX(stringIndex);
+        const y =
+          fret === null
+            ? stringDef.minFret > 0
+              ? fretLineY(stringDef.minFret - 1)
+              : fretLineY(0) - OPEN_STRING_OVERHANG
+            : dotY(fret);
+        return (
+          <g key={`highlight-${stringIndex}-${fret ?? "open"}`} className="group">
+            {/* opaque backing so the translucent marker on top doesn't let
+                fret lines/strings show through */}
+            <circle cx={x} cy={y} r={DOT_RADIUS} className="pointer-events-none fill-background" />
+            <circle
+              cx={x}
+              cy={y}
+              r={DOT_RADIUS}
+              onClick={() => (fret === null ? onOpen(stringIndex) : onFret(stringIndex, fret))}
+              className="cursor-pointer fill-highlight opacity-20 transition-colors duration-150 group-hover:fill-accent"
+            />
+            <text
+              x={x}
+              y={y}
+              textAnchor="middle"
+              dominantBaseline="central"
+              fontSize={HIGHLIGHT_LABEL_FONT_SIZE}
+              className="pointer-events-none fill-highlight font-bold transition-colors duration-150 group-hover:fill-accent"
+            >
+              {pitchClass(highlightedNote!)}
+            </text>
+          </g>
+        );
+      })}
     </svg>
   );
 }

@@ -10,6 +10,7 @@ import { OPEN_FINGERING, type StringIndex } from "@/lib/banjo/tuning";
 import { useSettingsStore, useTuning } from "@/lib/store/settingsStore";
 import { useAudioSettingsStore } from "@/lib/store/audioSettingsStore";
 import { useFingeringStore } from "@/lib/store/fingeringStore";
+import { useHighlightStore } from "@/lib/store/highlightStore";
 import { playNote, playNotes } from "@/lib/audio/audioEngine";
 
 export function FretboardSection() {
@@ -21,6 +22,8 @@ export function FretboardSection() {
   const strumSpreadMs = useAudioSettingsStore((s) => s.strumSpreadMs);
   const fingering = useFingeringStore((s) => s.fingering);
   const setFingering = useFingeringStore((s) => s.setFingering);
+  const highlightedNote = useHighlightStore((s) => s.highlightedNote);
+  const clearHighlight = useHighlightStore((s) => s.clearHighlight);
 
   // Reset fingering when the tuning changes: fret positions from one tuning
   // don't carry meaningful chord shapes into another. This has to be an
@@ -30,6 +33,16 @@ export function FretboardSection() {
   useEffect(() => {
     setFingering(OPEN_FINGERING);
   }, [tuningId, setFingering]);
+
+  // Clear any fretboard highlight the moment the actual fretting changes —
+  // a highlighted suggestion only means something relative to the shape
+  // that produced it. Keyed on tuningId too (not just fingering) because
+  // switching tuning while still at the untouched OPEN_FINGERING wouldn't
+  // otherwise change the fingering reference and would silently leave a
+  // stale highlight up.
+  useEffect(() => {
+    clearHighlight();
+  }, [fingering, tuningId, clearHighlight]);
 
   const chordResult = useMemo(() => detectChord(fingering, tuning), [fingering, tuning]);
 
@@ -59,7 +72,13 @@ export function FretboardSection() {
   return (
     <div className="flex flex-col items-center gap-1 sm:flex-row sm:items-center sm:justify-center">
       <div className="flex flex-col items-center" style={{ width: FRETBOARD_WIDTH }}>
-        <Fretboard fingering={fingering} tuning={tuning} onFret={handleFret} onOpen={handleOpen} />
+        <Fretboard
+          fingering={fingering}
+          tuning={tuning}
+          onFret={handleFret}
+          onOpen={handleOpen}
+          highlightedNote={highlightedNote}
+        />
         {showStrumButton && (
           <div className="mb-[11px]" style={{ width: FRETBOARD_STRINGS_WIDTH, height: FRET_HEIGHT }}>
             <StrumButton onStrum={handleStrum} />
