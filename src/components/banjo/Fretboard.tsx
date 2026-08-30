@@ -65,7 +65,7 @@ interface FretboardProps {
 }
 
 export function Fretboard({ fingering, tuning, onFret, onOpen, highlightedNote }: FretboardProps) {
-  const highlighted = highlightedNote ? highlightedPositions(tuning, highlightedNote) : [];
+  const highlighted = highlightedNote ? highlightedPositions(tuning, highlightedNote, fingering) : [];
 
   return (
     <svg

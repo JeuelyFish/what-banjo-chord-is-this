@@ -100,15 +100,22 @@ function bestChordNames(pitchClasses: string[]): string[] {
   return [...votes.entries()].sort((a, b) => b[1] - a[1]).map(([name]) => name);
 }
 
-export function detectChord(fingering: Fingering, tuning: StringDef[] = OPEN_G_TUNING): ChordResult {
-  // The 5th string is a drone: include it only when the player has
-  // deliberately fretted it, since its open note can clash with shapes
-  // played higher up the neck (e.g. it turns a D7 shape into a Gsus4add9).
+/**
+ * The distinct pitch classes actually sounding for a fingering. The 5th
+ * string is a drone: included only when the player has deliberately fretted
+ * it, since its open note can clash with shapes played higher up the neck
+ * (e.g. it turns a D7 shape into a Gsus4add9).
+ */
+export function soundingPitchClasses(fingering: Fingering, tuning: StringDef[] = OPEN_G_TUNING): string[] {
   const soundingStrings = tuning.filter(
     (s) => s.index !== 0 || fingering[s.index] !== null
   );
   const notes = soundingStrings.map((s) => noteAtFret(s, fingering[s.index] ?? 0));
-  const pitchClasses = Array.from(new Set(notes.map(pitchClass)));
+  return Array.from(new Set(notes.map(pitchClass)));
+}
+
+export function detectChord(fingering: Fingering, tuning: StringDef[] = OPEN_G_TUNING): ChordResult {
+  const pitchClasses = soundingPitchClasses(fingering, tuning);
   const names = bestChordNames(pitchClasses);
 
   if (names.length > 0) {
