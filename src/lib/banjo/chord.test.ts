@@ -44,10 +44,12 @@ describe("detectChord — 5th string handling", () => {
   });
 
   it("includes the 5th string's note once it's deliberately fretted", () => {
-    // Fretting the 5th string at fret 6 sounds Db, which clashes a
-    // half-step against the D7 shape's D — proof the note is actually fed
-    // into detection once fretted, rather than always being excluded.
-    const withFrettedFifth: Fingering = { ...D7_SHAPE, 0: 6 };
+    // The 5th string's own nut sits at fret 5 (see tuning.ts), so its pitch
+    // is offset from that fret, not from fret 0: fret 11 is 6 semitones
+    // above open G, landing on Db — which clashes a half-step against the
+    // D7 shape's D. Proof the note is actually fed into detection once
+    // fretted, rather than always being excluded.
+    const withFrettedFifth: Fingering = { ...D7_SHAPE, 0: 11 };
     const result = detectChord(withFrettedFifth);
     expect(result.primaryName).not.toBe("D7");
     expect(result.reason).toBe("cluster");
@@ -67,9 +69,10 @@ describe("detectChord — no-match reasons", () => {
   });
 
   it("reports cluster when two sounding notes are a half-step apart", () => {
-    // Produces {C, Eb, E, Gb, B} — E and Eb clash a half-step apart, which
-    // isn't part of any standard chord.
-    const fingering: Fingering = { 0: 5, 1: 1, 2: 4, 3: 5, 4: 4 };
+    // Produces {Bb, Eb, B, E, Gb} — Bb and B clash a half-step apart, which
+    // isn't part of any standard chord. (5th string fret 8 is 3 semitones
+    // above its open G, i.e. Bb — see tuning.ts on the 5th string's nut.)
+    const fingering: Fingering = { 0: 8, 1: 1, 2: 4, 3: 5, 4: 4 };
     const result = detectChord(fingering);
     expect(result.names).toEqual([]);
     expect(result.reason).toBe("cluster");

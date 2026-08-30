@@ -33,7 +33,7 @@ export function highlightedPositions(
     if (pitchClass(stringDef.openNote) === target) {
       positions.push({ stringIndex: stringDef.index, fret: null });
     }
-    for (let fret = Math.max(stringDef.minFret, 1); fret <= NUM_FRETS; fret++) {
+    for (let fret = Math.max(stringDef.minFret + 1, 1); fret <= NUM_FRETS; fret++) {
       if (pitchClass(noteAtFret(stringDef, fret)) === target) {
         positions.push({ stringIndex: stringDef.index, fret });
       }

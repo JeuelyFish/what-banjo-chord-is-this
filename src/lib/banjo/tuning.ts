@@ -8,12 +8,18 @@ export interface StringDef {
   index: StringIndex;
   openNote: string; // scientific pitch notation, e.g. "G4"
   label: string; // "5th".."1st"
-  minFret: number; // lowest fret the string can be pressed at
+  // Neck position (in the shared, board-wide fret numbering) where this
+  // string's own nut sits — 0 for the 4 main strings, whose nut is the
+  // banjo's actual nut. The lowest fret that can actually be *pressed* is
+  // one past this (see Fretboard's and highlight's fret loops), since you
+  // can't fret a string at its own nut.
+  minFret: number;
 }
 
 // Classic 5-string banjo, open G tuning (gDGBD). The 5th string is a short
-// drone string that physically starts at the 5th fret, so it can't be
-// pressed below that.
+// drone string whose own tuning peg — and thus its nut — sits at the 5th
+// fret, physically anchored to the neck there rather than running back to
+// the headstock like the other 4 strings.
 export const OPEN_G_TUNING: StringDef[] = [
   { index: 0, openNote: "G4", label: "5th", minFret: 5 },
   { index: 1, openNote: "D3", label: "4th", minFret: 0 },

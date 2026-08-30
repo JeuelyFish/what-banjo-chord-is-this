@@ -1,13 +1,29 @@
 import { Note } from "tonal";
 import type { Fingering, StringDef } from "./tuning";
 
-/** Returns the sounding note (e.g. "E3") for an open string plus a fret offset. */
+/**
+ * Returns the sounding note (e.g. "E3") for an open string plus a fret
+ * offset. `fret` is a neck position in the shared, board-wide numbering (the
+ * same fret lines every string is drawn against) — fret 0 always means
+ * "open," and for the 4 main strings that's also where their physical nut
+ * sits, so neck position equals semitone offset directly.
+ *
+ * The 5th string is different: its own nut sits at `minFret` (fret 5 in
+ * standard tuning), not fret 0, because that's physically where its short
+ * peg anchors it on the neck. So a neck position of `minFret` itself is
+ * just its open note again, and each fret past that adds one semitone
+ * relative to `minFret`, not to fret 0. Real banjos confirm this exactly:
+ * 5th-string capo spikes at frets 7/9/10 raise open G to A/B/C — 2, 4, and 5
+ * semitones up — which only lines up once the offset is measured from
+ * `minFret`, not from the neck's fret 0.
+ */
 export function noteAtFret(stringDef: StringDef, fret: number): string {
   const openMidi = Note.midi(stringDef.openNote);
   if (openMidi == null) {
     throw new Error(`Invalid open note: ${stringDef.openNote}`);
   }
-  return Note.fromMidi(openMidi + fret);
+  const offset = fret === 0 ? 0 : fret - stringDef.minFret;
+  return Note.fromMidi(openMidi + offset);
 }
 
 /** Strips the octave, e.g. "E3" -> "E". */

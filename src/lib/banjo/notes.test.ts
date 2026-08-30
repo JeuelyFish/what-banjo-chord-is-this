@@ -17,8 +17,26 @@ describe("noteAtFret", () => {
     expect(noteAtFret(fourthString, 2)).toBe("E3");
   });
 
-  it("works at the 5th string's minimum playable fret", () => {
-    expect(noteAtFret(fifthString, fifthString.minFret)).toBe("C5");
+  it("returns the open note when fretted at its own nut (not a real playable position)", () => {
+    // The 5th string's nut sits at fret 5 (see tuning.ts), so "fretting" it
+    // there is the same as playing it open — pressing at your own nut
+    // doesn't shorten the string.
+    expect(noteAtFret(fifthString, fifthString.minFret)).toBe("G4");
+  });
+
+  it("offsets from the 5th string's nut, not from fret 0, at its lowest real playable fret", () => {
+    // Fret 6 is the first fret past the 5th string's own nut (fret 5), so
+    // it's 1 semitone above open G, not 6: G4 -> G#4.
+    expect(noteAtFret(fifthString, fifthString.minFret + 1)).toBe("Ab4");
+  });
+
+  it("matches real 5th-string capo-spike positions (frets 7/9/10 -> A/B/C)", () => {
+    // Standard banjo 5th-string capo spikes sit at frets 7, 9, and 10,
+    // raising open G to A, B, and C respectively — confirms the offset is
+    // measured from the string's own nut (fret 5), not from fret 0.
+    expect(noteAtFret(fifthString, 7)).toBe("A4");
+    expect(noteAtFret(fifthString, 9)).toBe("B4");
+    expect(noteAtFret(fifthString, 10)).toBe("C5");
   });
 });
 

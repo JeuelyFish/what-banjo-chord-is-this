@@ -79,7 +79,7 @@ export function Fretboard({ fingering, tuning, onFret, onOpen, highlightedNote }
       {Array.from({ length: NUM_FRETS + 1 }, (_, fret) => (
         <line
           key={fret}
-          x1={fret < tuning[0].minFret - 1 ? screenX(1) : screenX(0)}
+          x1={fret < tuning[0].minFret ? screenX(1) : screenX(0)}
           x2={screenX(4)}
           y1={fretLineY(fret)}
           y2={fretLineY(fret)}
@@ -107,7 +107,7 @@ export function Fretboard({ fingering, tuning, onFret, onOpen, highlightedNote }
         const x = screenX(stringDef.index);
         const topY =
           stringDef.minFret > 0
-            ? fretLineY(stringDef.minFret - 1)
+            ? dotY(stringDef.minFret)
             : fretLineY(0) - OPEN_STRING_OVERHANG;
         return (
           <line
@@ -126,7 +126,7 @@ export function Fretboard({ fingering, tuning, onFret, onOpen, highlightedNote }
       {tuning.map((stringDef) => {
         const topY =
           stringDef.minFret > 0
-            ? fretLineY(stringDef.minFret - 1)
+            ? dotY(stringDef.minFret)
             : fretLineY(0) - OPEN_STRING_OVERHANG;
         return (
           <text
@@ -148,7 +148,7 @@ export function Fretboard({ fingering, tuning, onFret, onOpen, highlightedNote }
         const x = screenX(stringDef.index);
         const y =
           stringDef.minFret > 0
-            ? fretLineY(stringDef.minFret - 1)
+            ? dotY(stringDef.minFret)
             : fretLineY(0) - OPEN_STRING_OVERHANG;
         const isOpen = fingering[stringDef.index] === null;
         return (
@@ -169,7 +169,7 @@ export function Fretboard({ fingering, tuning, onFret, onOpen, highlightedNote }
       {/* fretted positions */}
       {tuning.flatMap((stringDef) =>
         Array.from({ length: NUM_FRETS }, (_, i) => i + 1)
-          .filter((fret) => fret >= Math.max(stringDef.minFret, 1))
+          .filter((fret) => fret >= Math.max(stringDef.minFret + 1, 1))
           .map((fret) => {
             const isPressed = fingering[stringDef.index] === fret;
             return (
@@ -194,7 +194,7 @@ export function Fretboard({ fingering, tuning, onFret, onOpen, highlightedNote }
         const y =
           fret === null
             ? stringDef.minFret > 0
-              ? fretLineY(stringDef.minFret - 1)
+              ? dotY(stringDef.minFret)
               : fretLineY(0) - OPEN_STRING_OVERHANG
             : dotY(fret);
         return (

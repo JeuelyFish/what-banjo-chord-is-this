@@ -17,11 +17,14 @@ describe("highlightedPositions", () => {
     expect(highlightedPositions(OPEN_G_TUNING, "G")).toContainEqual({ stringIndex: 1, fret: 5 });
   });
 
-  it("respects the 5th string's minFret floor", () => {
-    // 5th string (index 0) is open G4, minFret 5; G4 + 5 semitones = C5.
+  it("respects the 5th string's real playable floor, one fret past its own nut", () => {
+    // 5th string (index 0) is open G4, and its own nut sits at fret 5 (see
+    // tuning.ts), so its pitch is offset from fret 5, not fret 0: fret 10
+    // is 5 semitones past that nut, landing on C5. Fret 5 itself isn't a
+    // real playable position (it's the nut), so it must not appear.
     const positions = highlightedPositions(OPEN_G_TUNING, "C");
-    expect(positions).toContainEqual({ stringIndex: 0, fret: 5 });
-    expect(positions.some((p) => p.stringIndex === 0 && p.fret !== null && p.fret < 5)).toBe(false);
+    expect(positions).toContainEqual({ stringIndex: 0, fret: 10 });
+    expect(positions.some((p) => p.stringIndex === 0 && p.fret !== null && p.fret <= 5)).toBe(false);
   });
 });
 
@@ -46,8 +49,9 @@ describe("highlightedPositions — fingering-aware filtering", () => {
   });
 
   it("keeps the drone string's 'C', which adds the note without displacing anything", () => {
+    // Fret 10 on the drone (5 semitones past its own nut at fret 5) is C.
     const positions = highlightedPositions(OPEN_G_TUNING, "C", B_STRING_FRET_6);
-    expect(positions).toContainEqual({ stringIndex: 0, fret: 5 });
+    expect(positions).toContainEqual({ stringIndex: 0, fret: 10 });
   });
 
   it("keeps a 'C' position that overwrites a redundant note (another string still covers it)", () => {
